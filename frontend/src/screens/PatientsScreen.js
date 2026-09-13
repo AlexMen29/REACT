@@ -1,12 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import { UserContext } from './context/UserContext';
+import { ThemeContext } from './context/ThemeContext';
 
-const PatitensScreen = () => {
+const PatientsScreen = () => {
     const [patients, setPatients] = useState([]);
     const [name, setName] = useState('');
     const [editingId, setEditingId] = useState(null);
     const { user } = useContext(UserContext);
+    const { darkMode } = useContext(ThemeContext);
 
     const addPatient = () => {
         if (!name.trim()) {
@@ -41,13 +43,15 @@ const PatitensScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Gestión de Pacientes - {user?.username}</Text>
+        <View style={[styles.container, darkMode && styles.containerDark]}>
+            <Text style={[styles.title, darkMode && styles.titleDark]}>
+                Gestión de Pacientes - {user?.username}
+            </Text>
 
             <TextInput
-                style={styles.input}
+                style={[styles.input, darkMode && styles.inputDark]}
                 placeholder="Nombre del Paciente"
-                placeholderTextColor="#999"
+                placeholderTextColor={darkMode ? '#777' : '#999'}
                 value={name}
                 onChangeText={setName}
             />
@@ -58,15 +62,17 @@ const PatitensScreen = () => {
                 </Text>
             </TouchableOpacity>
 
-            <Text style={styles.counter}>Pacientes registrados: {patients.length}</Text>
+            <Text style={[styles.counter, darkMode && styles.textDark]}>
+                Pacientes registrados: {patients.length}
+            </Text>
 
             <FlatList
                 data={patients}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ alignItems: 'center', width: '100%' }}
                 renderItem={({ item }) => (
-                    <View style={styles.itemContainer}>
-                        <Text style={styles.itemText}>{item.name}</Text>
+                    <View style={[styles.itemContainer, darkMode && styles.itemContainerDark]}>
+                        <Text style={[styles.itemText, darkMode && styles.textDark]}>{item.name}</Text>
                         <View style={styles.buttonGroup}>
                             <TouchableOpacity style={styles.editButton} onPress={() => editPatient(item)}>
                                 <Text style={styles.buttonText}>Editar</Text>
@@ -90,12 +96,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 30,
     },
+    containerDark: {
+        backgroundColor: '#121212',
+    },
     title: {
         fontSize: 20,
         fontWeight: 'bold',
         color: '#006699',
         marginBottom: 25,
         textAlign: 'center',
+    },
+    titleDark: {
+        color: '#4dabf7',
     },
     input: {
         width: '100%',
@@ -107,6 +119,12 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 16,
         color: '#333',
+        backgroundColor: '#ffffff',
+    },
+    inputDark: {
+        backgroundColor: '#1e1e1e',
+        borderColor: '#333333',
+        color: '#f1f1f1',
     },
     addButton: {
         width: '100%',
@@ -129,6 +147,9 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         alignSelf: 'center',
     },
+    textDark: {
+        color: '#f1f1f1',
+    },
     itemContainer: {
         width: '100%',
         backgroundColor: '#f8f9fa',
@@ -140,6 +161,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+    itemContainerDark: {
+        backgroundColor: '#1e1e1e',
+        borderColor: '#2e2e2e',
     },
     itemText: {
         fontSize: 16,
@@ -169,4 +194,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default PatitensScreen;
+export default PatientsScreen;

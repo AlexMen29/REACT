@@ -1,70 +1,84 @@
-import {useState} from 'react';
-import {Text, TextInput, View, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { UserContext } from './context/UserContext';
+import { ThemeContext } from './context/ThemeContext';
 
-const PatitensScreen = () => {
-    const [inputText, setInputText] = useState('');
+const PatientsScreen = () => {
     const [patients, setPatients] = useState([]);
-    const [isFocused, setIsFocused] = useState(false);
+    const [name, setName] = useState('');
+    const [editingId, setEditingId] = useState(null);
+    const { user } = useContext(UserContext);
+    const { darkMode } = useContext(ThemeContext);
 
-    // agregar paciente
     const addPatient = () => {
-        if (inputText.trim()) {
+        if (!name.trim()) {
+            Alert.alert('Aviso', 'Ingresa el nombre del paciente');
+            return;
+        }
+
+        if (editingId) {
+            setPatients(patients.map(p => p.id === editingId ? { ...p, name: name.trim() } : p));
+            setEditingId(null);
+        } else {
             const newPatient = {
                 id: Date.now().toString(),
-                name: inputText,
+                name: name.trim(),
             };
             setPatients([...patients, newPatient]);
-            setInputText('');
         }
+        setName('');
     };
 
-    // editar paciente
-    const editPatient = (id) => {
-        const patientToEdit = patients.find((p) => p.id === id);
-        if (patientToEdit) {
-            setInputText(patientToEdit.name);
-            deletePatient(id);
-        }
+    const editPatient = (item) => {
+        setEditingId(item.id);
+        setName(item.name);
     };
 
-    // eliminar paciente
     const deletePatient = (id) => {
-        setPatients(patients.filter((patient) => patient.id !== id));
+        setPatients(patients.filter(p => p.id !== id));
+        if (editingId === id) {
+            setEditingId(null);
+            setName('');
+        }
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Gestion de Pacientes</Text>
+        <View style={[styles.container, darkMode && styles.containerDark]}>
+            <Text style={[styles.title, darkMode && styles.titleDark]}>
+                Gestión de Pacientes - {user?.username}
+            </Text>
+
             <TextInput
-                style={[styles.input, {
-                    borderWidth: isFocused ? 3 : 1
-                }]}
-                placeholder="Ingrese el nombre del paciente"
-                value={inputText}
-                onChangeText={setInputText}
-                OnFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
+                style={[styles.input, darkMode && styles.inputDark]}
+                placeholder="Nombre del Paciente"
+                placeholderTextColor={darkMode ? '#777' : '#999'}
+                value={name}
+                onChangeText={setName}
             />
+
             <TouchableOpacity style={styles.addButton} onPress={addPatient}>
-                <Text style={styles.addButtonText}>Agregar Paciente</Text>
+                <Text style={styles.addButtonText}>
+                    {editingId ? "Actualizar Paciente" : "Agregar Paciente"}
+                </Text>
             </TouchableOpacity>
 
-            <Text style={styles.counter}>Pacientes Registrados: {patients.length}</Text>
-
+            <Text style={[styles.counter, darkMode && styles.textDark]}>
+                Pacientes registrados: {patients.length}
+            </Text>
 
             <FlatList
                 data={patients}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ alignItems: 'center', width: '100%' }}
                 renderItem={({ item }) => (
-                    <View style={styles.itemContainer}>
-                        <Text style={styles.itemText}>{item.name}</Text>
-                        <View style={styles.ButtonGroup}>
-                            <TouchableOpacity style={styles.editButton} onPress={() => editPatient(item.id)}>
-                                <Text style={styles.ButtonText}>Editar</Text>
+                    <View style={[styles.itemContainer, darkMode && styles.itemContainerDark]}>
+                        <Text style={[styles.itemText, darkMode && styles.textDark]}>{item.name}</Text>
+                        <View style={styles.buttonGroup}>
+                            <TouchableOpacity style={styles.editButton} onPress={() => editPatient(item)}>
+                                <Text style={styles.buttonText}>Editar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.deleteButton} onPress={() => deletePatient(item.id)}>
-                                <Text style={styles.ButtonText}>Eliminar</Text>
+                                <Text style={styles.buttonText}>Eliminar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -72,95 +86,112 @@ const PatitensScreen = () => {
             />
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,//Activar flexbox para que el contenedor ocupe todo el espacio disponible
-        justifyContent: 'flex-start',
+        flex: 1,
+        backgroundColor: '#ffffff',
         alignItems: 'center',
-        padding: 20,
-        paddingTop: 50,
-        backgroundColor: '#c8dcf6',
+        paddingHorizontal: 20,
+        paddingTop: 30,
+    },
+    containerDark: {
+        backgroundColor: '#121212',
     },
     title: {
-        fontSize: 30,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 20,
+        color: '#006699',
+        marginBottom: 25,
         textAlign: 'center',
-        color: '#005187',
+    },
+    titleDark: {
+        color: '#4dabf7',
     },
     input: {
-        height: 50,
-        borderColor: '#005187',
-        borderWidth: 1,
-        borderRadius: 10,
-        margin: 10,
-        padding: 10,
         width: '100%',
-        backgroundColor: '#fff',
-        fontSize: 18,
+        height: 50,
+        borderWidth: 1,
+        borderColor: '#ced4da',
+        borderRadius: 8,
+        paddingHorizontal: 15,
+        marginBottom: 15,
+        fontSize: 16,
+        color: '#333',
+        backgroundColor: '#ffffff',
+    },
+    inputDark: {
+        backgroundColor: '#1e1e1e',
+        borderColor: '#333333',
+        color: '#f1f1f1',
     },
     addButton: {
         width: '100%',
-        backgroundColor: '#005187',
-        borderRadius: 10,
-        height: 50,
-        justifyContent: 'center',
+        height: 48,
+        backgroundColor: '#006699',
+        borderRadius: 8,
         alignItems: 'center',
-        marginTop: 10,
+        justifyContent: 'center',
+        marginBottom: 20,
     },
     addButtonText: {
-        color: '#fff',
-        fontSize: 18,
+        color: '#ffffff',
+        fontSize: 16,
         fontWeight: 'bold',
     },
     counter: {
-        margin: 15,
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 15,
+        alignSelf: 'center',
+    },
+    textDark: {
+        color: '#f1f1f1',
     },
     itemContainer: {
-        padding: 10,
-        margin : 10,
-        backgroundColor: '#fff',
-        borderRadius: 5,
         width: '100%',
-        flexDirection: 'column',
+        backgroundColor: '#f8f9fa',
+        borderWidth: 1,
+        borderColor: '#dee2e6',
+        borderRadius: 8,
+        padding: 14,
+        marginBottom: 10,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    itemContainerDark: {
+        backgroundColor: '#1e1e1e',
+        borderColor: '#2e2e2e',
     },
     itemText: {
-        fontSize: 18,
-        margin: 10,
-        flexWrap: 'wrap',
-        fontWeight: 'bold',
+        fontSize: 16,
+        color: '#212529',
+        flex: 1,
     },
-    ButtonGroup: {
+    buttonGroup: {
         flexDirection: 'row',
-        gap: 10,
+        gap: 8,
     },
     editButton: {
-        backgroundColor: '#ffc107',
-        padding: 10,
-        width: '40%',
+        backgroundColor: '#006699',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
         borderRadius: 5,
-        marginLeft: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     deleteButton: {
         backgroundColor: '#dc3545',
-        padding: 10,
-        width: '40%',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
         borderRadius: 5,
-        marginLeft: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
-    ButtonText: {
-        color: '#fff',
+    buttonText: {
+        color: '#ffffff',
+        fontSize: 13,
         fontWeight: 'bold',
     },
 });
 
-export default PatitensScreen;
+export default PatientsScreen;

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from './context/UserContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -8,19 +8,55 @@ const LoginScreen = () => {
   // Estados para capturar lo que el usuario escribe (credenciales quemadas para Alex)
   const [username, setUsername] = useState('alex');
   const [password, setPassword] = useState('123456');
+  const [loading, setLoading] = useState(true);
   const { setUser } = useContext(UserContext);
   const navigation = useNavigation();
 
-  const handleLogin = () => {
-    //si falta algun campo
-    if (!username || !password) {
-      alert('Por favor, complete todos los campos.');
-      return;
-    }
+  // verificar si hay token
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token'); 
+        const storedUser = await AsyncStorage.getItem('user');
 
-    setUser({ username: username.trim() });
-    navigation.navigate('Main');
+        if (token) { 
+          if (setUser && storedUser) {
+            setUser({ username: storedUser });
+          }
+          navigation.replace('Main');
+          return;
+        }
+      } catch (error) {
+        console.log('Error verificando token:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkToken();
+  }, []);
+
+
+
+  const handleLogin = async () => {
+    if (username && password) {
+      await AsyncStorage.setItem('user', username.trim());
+      await AsyncStorage.setItem('token', 'fake-token-12345');
+      setUser({ username: username.trim() });
+      navigation.replace('Main');
+      return;
+    } else {
+      alert('Por favor, complete todos los campos.');
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F5F5' }}>
+        <ActivityIndicator size="large" color="#5A189A" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
