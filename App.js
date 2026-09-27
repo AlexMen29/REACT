@@ -5,13 +5,21 @@ import { UserProvider } from './frontend/src/screens/context/UserContext';
 import { ThemeProvider } from './frontend/src/screens/context/ThemeContext';
 import AppNavigation from './AppNavigation';
 
+import  {SQLiteProvider} from 'expo-sqlite';
+
+import {InitializeDatabase} from './frontend/src/db/Database';
+
 const App = () => {
   return (
     <SafeAreaProvider>
       <UserProvider>
-        <ThemeProvider>
-          <AppNavigation />
-        </ThemeProvider>
+        <SQLiteProvider databaseName= 'clinicaPediatrica.db' onInit = {InitializeDatabase}>
+
+          <ThemeProvider>
+            <AppNavigation />
+          </ThemeProvider>
+        </SQLiteProvider>
+
       </UserProvider>
     </SafeAreaProvider>
   );
