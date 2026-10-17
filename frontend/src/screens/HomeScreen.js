@@ -43,6 +43,10 @@ const HomeScreen = () => {
                 <MaterialCommunityIcons name="baby-carriage" size={24} color="white" />
                 <Text style={styles.buttonText}>Gestion de Pacientes</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={[styles.button, darkMode && styles.buttonDark]} onPress={() => navigation.navigate('Medicos')}>
+                <MaterialCommunityIcons name="doctor" size={24} color="white" />
+                <Text style={styles.buttonText}>Gestion de Médicos (API)</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.button, darkMode && styles.buttonDark]} onPress={() => navigation.navigate('Configuracion')}>
                 <MaterialCommunityIcons name="cog" size={24} color="white" />
                 <Text style={styles.buttonText}>Configuracion</Text>

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from './context/UserContext';
 import { useNavigation } from '@react-navigation/native';
+import { authFetch } from '../config/api';
 
 const LoginScreen = () => {
   // Estados para capturar lo que el usuario escribe (credenciales quemadas para Alex)
-  const [username, setUsername] = useState('alex');
-  const [password, setPassword] = useState('123456');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
   const { setUser } = useContext(UserContext);
   const navigation = useNavigation();
@@ -40,6 +42,30 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (username && password) {
+      try {
+        const res = await authFetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            nombreUsuario: username.trim(), 
+            contraseña: password,
+            contrasena: password,
+            password: password 
+          }),
+        });
+        const data = await res.json();
+        if (res.status === 200 && data.token) {
+          await AsyncStorage.setItem('user', username.trim());
+          await AsyncStorage.setItem('token', data.token);
+          setUser({ username: username.trim() });
+          navigation.replace('Main');
+          return;
+        }
+      } catch (e) {
+        console.log('Backend offline o error, usando fallback local:', e);
+      }
+
+      // Modo fallback
       await AsyncStorage.setItem('user', username.trim());
       await AsyncStorage.setItem('token', 'fake-token-12345');
       setUser({ username: username.trim() });
@@ -69,7 +95,6 @@ const LoginScreen = () => {
           {/* Título */}
           <Text style={styles.title}>Iniciar Sesión</Text>
 
-          {/* Input: Nombre de usuario */}
           <TextInput
             style={styles.input}
             placeholder="Nombre de usuario"
@@ -79,7 +104,6 @@ const LoginScreen = () => {
             autoCapitalize="none"
           />
 
-          {/* Input: Contraseña */}
           <TextInput
             style={styles.input}
             placeholder="Contraseña"
@@ -89,9 +113,15 @@ const LoginScreen = () => {
             secureTextEntry={true} // Oculta el texto para la contraseña
           />
 
-          {/* Botón: Ingresar */}
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Ingresar</Text>
+          </TouchableOpacity>
+
+          {/* Botón: Ir a Registro */}
+          <TouchableOpacity style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.registerLinkText}>
+              ¿No tienes cuenta? <Text style={styles.registerLinkBold}>Regístrate aquí</Text>
+            </Text>
           </TouchableOpacity>
 
         </View>
@@ -157,7 +187,20 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     alignSelf: 'center',
-  }
+  },
+  registerLink: {
+    marginTop: 20,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  registerLinkText: {
+    fontSize: 15,
+    color: '#666',
+  },
+  registerLinkBold: {
+    color: '#5A189A',
+    fontWeight: 'bold',
+  },
 });
 
 export default LoginScreen;

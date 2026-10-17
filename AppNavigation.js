@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import LoginScreen from './frontend/src/screens/LoginScreen';
+import RegisterScreen from './frontend/src/screens/RegisterScreen';
 import HomeScreen from './frontend/src/screens/HomeScreen';
 import ProfileScreen from './frontend/src/screens/ProfileScreen';
 import PatientsScreen from './frontend/src/screens/PatientsScreen';
@@ -13,6 +14,7 @@ import SettingsScreen from './frontend/src/screens/SettingsScreen';
 import HelpScreen from './frontend/src/screens/HelpScreen';
 import AppointmentScreen from './frontend/src/screens/AppointmentScreen';
 import MedicalHistoryScreen from './frontend/src/screens/MedicalHistoryScreen';
+import DoctorsScreen from './frontend/src/screens/DoctorsScreen';
 import { ThemeContext } from './frontend/src/screens/context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
@@ -83,6 +85,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="Principal" component={AppTabs} />
       <Drawer.Screen name="Perfil" component={ProfileScreen} />
       <Drawer.Screen name="Pacientes" component={PatientsScreen} />
+      <Drawer.Screen name="Medicos" component={DoctorsScreen} options={{ title: 'Médicos (CRUD API)' }} />
       <Drawer.Screen name="Configuracion" component={SettingsScreen} />
       <Drawer.Screen name="Ayuda" component={HelpScreen} />
     </Drawer.Navigator>
@@ -105,6 +108,7 @@ const AppNavigation = () => {
     <NavigationContainer theme={customTheme}>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={DrawerNavigator} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
